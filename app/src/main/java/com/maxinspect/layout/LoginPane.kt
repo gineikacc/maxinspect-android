@@ -21,10 +21,15 @@ import com.google.api.client.json.jackson2.JacksonFactory.getDefaultInstance
 import com.google.api.services.gmail.Gmail
 import com.google.api.services.gmail.model.Message
 import com.maxinspect.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Base64
 
 class LoginPane : ComponentActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
-
+    private val uiScope = CoroutineScope(Dispatchers.Main)
     private val signInLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             // Handle the result of the sign-in activity here
@@ -130,25 +135,63 @@ class LoginPane : ComponentActivity() {
 
     // Example function to list the emails from the Gmail account
     private fun listEmails(gmailService: Gmail) {
+        uiScope.launch {
         try {
 
         Log.w("LoginPane", "5")
         val request = gmailService.users().messages().list("me")
+            .setQ("from:noreply.code.provider@maxima.lt subject:\"Jūsų apsipirkimo MAXIMOJE kvitas\"")
         Log.w("LoginPane", request.userId)
         Log.w("LoginPane", "aa")
-        val response = request.execute()
+        val response = withContext(Dispatchers.IO) { request.execute() }
         Log.w("LoginPane", "6")
 
         for (message in response.messages) {
             // Process each email message
-            val email: Message = gmailService.users().messages().get("me", message.id).execute()
+            val email: Message = withContext(Dispatchers.IO) {
+                gmailService.users().messages().get("me", message.id).execute()
+            }
+
             Log.d("LoginPane", "Subject: ${email.payload.headers.find { it.name == "Subject" }?.value}")
+            Log.d("LoginPane", "aa")
+            break;
         }
         Log.w("LoginPane", "7")
         } catch (e: Exception) {
             Log.e("LoginPane", "BAD MEMES")
             Log.e("LoginPane", e.message.toString())
         }
+        }
+    }
+
+    fun parseEmail(email:Message) {
+        val b64Content = email.payload.parts[0].body.data
+        var content = String(Base64.getDecoder().decode(b64Content))
+        content = content
+            .replace("\r\n", " ")
+            .replace(Regex(" {2,}"), " ")
+
+        val tableStartIndex = content.indexOf("<table")
+        val tableEndIndex = content.indexOf("</table>")
+        content = content.slice(tableStartIndex..tableEndIndex)
+        val preTagIndex = content.lastIndexOf("<pre>")
+        content = content.slice(preTagIndex until content.length)
+        val startWords = content.slice(0..100).split(" ")
+        val hasCashierID = startWords[2] == "Kasininkas"
+        var checkID = ""
+        if (hasCashierID) {
+            checkID = startWords[1]
+        } else {
+            checkID = startWords[2]
+        }
+
+
+
+
+
+
+
+
     }
 
 }

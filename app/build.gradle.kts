@@ -65,13 +65,15 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0") // Use the latest version available
     implementation("com.google.apis:google-api-services-gmail:v1-rev110-1.25.0")
     implementation("com.google.android.gms:play-services-auth:21.2.0") // Google Sign-In dependency
     implementation(libs.androidx.activity.ktx) // Activity Result API
     implementation(libs.google.api.client.android) // Google API Client
     implementation(libs.google.api.services.gmail) // Google API Services for Gmail
-    implementation(libs.gson) // Gson for JSON parsing (required by the Gmail API)
+    implementation(libs.gson)
+    implementation(libs.play.services.basement) // Gson for JSON parsing (required by the Gmail API)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
