@@ -21,6 +21,7 @@ import com.google.api.client.json.jackson2.JacksonFactory.getDefaultInstance
 import com.google.api.services.gmail.Gmail
 import com.google.api.services.gmail.model.Message
 import com.maxinspect.R
+import com.maxinspect.R.id.testButton
 import com.maxinspect.models.EmailCheck
 import com.maxinspect.models.EmailProduct
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +30,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import java.util.Base64
 
 class LoginPane : ComponentActivity() {
@@ -72,6 +77,8 @@ class LoginPane : ComponentActivity() {
 
 
 
+        findViewById<Button>(testButton).setOnClickListener {
+        }
         // Set up sign-in button
         findViewById<Button>(R.id.OAuthButton).setOnClickListener {
             signIn()
@@ -100,7 +107,7 @@ class LoginPane : ComponentActivity() {
             Log.w("LoginPane", "1")
             val gmailService = getGmailService(account)
 
-            listEmails(gmailService)
+            listEmails(gmailService, account.email.toString())
             googleSignInClient.signOut()
         } else {
             Log.w("LoginPane", "Signed in FAILED")
@@ -138,7 +145,7 @@ class LoginPane : ComponentActivity() {
     }
 
     // Example function to list the emails from the Gmail account
-    private fun listEmails(gmailService: Gmail) {
+    private fun listEmails(gmailService: Gmail, owner: String) {
         uiScope.launch {
             try {
                 val request = gmailService.users().messages().list("me")
@@ -153,10 +160,11 @@ class LoginPane : ComponentActivity() {
                     }
 
                     var check = parseEmail(email)
+                    check.owner = owner
                     Log.e("LoginPane", Json.encodeToString(check))
+                    sendRequest(check)
                     //IMPORTANT We got the check now do the magic with Node
 
-                    break;
                 }
             } catch (e: Exception) {
                 Log.e("LoginPane", "Something went wrong")
@@ -170,13 +178,18 @@ class LoginPane : ComponentActivity() {
         val decodedBytes = Base64.getDecoder().decode(b64Content.toByteArray())
         var content = String(decodedBytes)
         content = content.replace("\r\n", " ").replace(Regex(" {2,}"), " ")
+        //time of purchase 2024-11-28 20:03:41
+        val dateRegex = Regex("""\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}""")
+        val date = dateRegex.find(content)?.groupValues?.get(0)
+
         content = content.slice(content.indexOf("<table") until content.indexOf("</table"))
         content = content.substring(content.lastIndexOf("<pre>"))
 // Cashier check (different format)
         val startWords = content.slice(0 until 100).split(" ")
         val hasCashierID = startWords[2] == "Kasininkas"
 
-        val checkID = if (hasCashierID) startWords[1] else startWords[2]
+        var checkID = if (hasCashierID) startWords[1] else startWords[2]
+        checkID = checkID.drop(1)
 // if cashier length of first 10 words, if not length of first 3. (include WC for missing spaces
 
         var trimLength = 0
@@ -256,8 +269,37 @@ class LoginPane : ComponentActivity() {
         }
 
 
-        val check = EmailCheck(checkID, finalProds.toTypedArray())
+        val check = EmailCheck(owner="_", checkID, finalProds.toTypedArray(), date ?: "NONE")
         return check
+    }
+
+    fun sendRequest(check : EmailCheck) {
+        // Create the data to send
+
+        val client = OkHttpClient()
+
+        // Build the request
+        val request = Request.Builder()
+            .url("http://gineika.cc/createreceipt")
+            .post(RequestBody.create("application/json".toMediaType(), Json.encodeToString(check)))
+            .build()
+
+        // Use a coroutine to handle the network call off the main thread
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Execute the request
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        Log.e("LoginPane", "Unexpected code $response")
+                    } else {
+                        // Print the response body
+                        Log.w("LoginPane", response.body?.string() ?: "noinfo")
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
 }
