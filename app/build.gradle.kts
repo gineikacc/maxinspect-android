@@ -69,6 +69,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0") // Use the latest version available
     implementation("com.google.apis:google-api-services-gmail:v1-rev110-1.25.0")
     implementation("com.google.android.gms:play-services-auth:21.2.0") // Google Sign-In dependency
+    implementation("io.ktor:ktor-client-core:2.2.4") // Ktor client core
+    implementation("io.ktor:ktor-client-android:2.2.4") // Ktor Android client
+    implementation("io.ktor:ktor-client-json:2.2.4") // Ktor JSON feature
+    implementation("io.ktor:ktor-client-serialization:2.2.4") // Ktor serialization feature
+
     implementation(libs.androidx.activity.ktx) // Activity Result API
     implementation(libs.google.api.client.android) // Google API Client
     implementation(libs.google.api.services.gmail) // Google API Services for Gmail
