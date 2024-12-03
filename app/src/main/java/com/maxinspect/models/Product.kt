@@ -12,6 +12,5 @@ data class Product(
     val calories: Float,
     val protein: Float,
     val carbs: Float,
-    val fats: Float,
-    val salt: Float
+    val fats: Float
 )

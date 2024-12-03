@@ -22,7 +22,6 @@ class ProductPane : ComponentActivity() {
                 0.3f,
                 10f,
                 0.2f,
-                0f
             )
 
         val productTitle = findViewById<TextView>(R.id.productTitle)

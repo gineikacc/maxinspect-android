@@ -1,18 +1,18 @@
 package com.maxinspect
 
 import android.app.Application
-import android.util.Log
+import com.maxinspect.models.Product
+import com.maxinspect.models.Purchase
+import com.maxinspect.models.Receipt
+
+object Globals {
+    var receipts = ArrayList<Receipt>()
+    var products = ArrayList<Product>()
+    var purchases = ArrayList<Purchase>()
+}
 
 class MaxInspect : Application() {
-    var someVar: String? = "B0ss"
-
     override fun onCreate() {
         super.onCreate()
-        Log.i("MaxInspect", "App created")
-        // Initialize any global state here, if needed
     }
-
-    //fun setSomeVar(value: String?) {
-        //someVar = value   // ALSO SHOULD SAVE TO WHATEVER STORAGE THERE IS
-    //}
 }

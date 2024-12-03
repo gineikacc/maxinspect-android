@@ -2,11 +2,18 @@ package com.maxinspect.layout
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import androidx.activity.ComponentActivity
 import com.maxinspect.R
+import com.maxinspect.Util
 
 class Index : ComponentActivity() {
+
+    object CODE {
+        val FILE_PICK = 4321
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.index)
@@ -36,8 +43,34 @@ class Index : ComponentActivity() {
             startActivity(intent)
         }
 
+        val registerProductsButton = findViewById<Button>(R.id.RegisterProductsButton)
+        registerProductsButton.setOnClickListener {
+
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "text/csv"
+                addCategory(Intent.CATEGORY_OPENABLE)
+            }
+            startActivityForResult(Intent.createChooser(intent, "Select a CSV file"), CODE.FILE_PICK)
+        }
+
     }
 
+    // Handle the file selection result
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == CODE.FILE_PICK && resultCode == RESULT_OK) {
+            data?.data?.let { uri ->
+
+
+                Log.e("LoginPane", "BIGBIG")
+                Log.e("LoginPane", uri.toString())
+                Util.dbUploadCSVFile(uri, this)  // Pass the file URI to upload function
+// Add response code or smth
+
+            }
+        }
+    }
 
 
 }

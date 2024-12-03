@@ -29,7 +29,6 @@ class ReceiptPane : ComponentActivity() {
                 0.3f,
                 10f,
                 0.2f,
-                0f
             ),
             Product(
                 "SomeName",
@@ -41,7 +40,6 @@ class ReceiptPane : ComponentActivity() {
                 0.3f,
                 10f,
                 0.2f,
-                0f
             ),
             Product(
                 "SomeName",
@@ -53,7 +51,6 @@ class ReceiptPane : ComponentActivity() {
                 0.5f,
                 17f,
                 0.2f,
-                0.7f
             ),
             Product(
                 "SomeName",
@@ -65,7 +62,6 @@ class ReceiptPane : ComponentActivity() {
                 23f,
                 10f,
                 15f,
-                2f
             ),
         )
 

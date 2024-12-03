@@ -16,7 +16,6 @@ class ProductListPane : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.product_list_pane)
-
         // Sample data for the RecyclerView
         var itemList = listOf(
             Product(
@@ -29,7 +28,6 @@ class ProductListPane : ComponentActivity() {
                 0.3f,
                 10f,
                 0.2f,
-                0f
             ),
             Product(
                 "SomeName",
@@ -41,7 +39,6 @@ class ProductListPane : ComponentActivity() {
                 0.3f,
                 10f,
                 0.2f,
-                0f
             ),
             Product(
                 "SomeName",
@@ -53,7 +50,6 @@ class ProductListPane : ComponentActivity() {
                 0.5f,
                 17f,
                 0.2f,
-                0.7f
             ),
             Product(
                 "SomeName",
@@ -65,7 +61,6 @@ class ProductListPane : ComponentActivity() {
                 23f,
                 10f,
                 15f,
-                2f
             ),
         )
 

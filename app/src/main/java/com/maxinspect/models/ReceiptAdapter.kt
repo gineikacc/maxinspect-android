@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.maxinspect.R
-import java.text.SimpleDateFormat
 
 class ReceiptAdapter(
     private val receipts: List<Receipt>,
@@ -26,7 +25,7 @@ class ReceiptAdapter(
 
     override fun onBindViewHolder(holder: ReceiptViewHolder, position: Int) {
         val item = receipts[position]
-        holder.dateView.text = SimpleDateFormat("yy/MM/dd hh:mm").format(item.date).toString()
+        holder.dateView.text = item.date
         holder.priceView.text = (item.price/100.0).toString() + " Eur"
         // Set up click listener
         holder.itemView.setOnClickListener {
