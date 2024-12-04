@@ -3,8 +3,8 @@ package com.maxinspect.layout
 import android.os.Bundle
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import com.maxinspect.Globals
 import com.maxinspect.R
-import com.maxinspect.models.Product
 
 class ProductPane : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -12,17 +12,8 @@ class ProductPane : ComponentActivity() {
         setContentView(R.layout.product_pane)
 
         // Sample data for the RecyclerView
-        val prod = Product(
-                "SomeName",
-                "Obuoliai JONAGOLD",
-                139,
-                0,
-                0.4f,
-                52f,
-                0.3f,
-                10f,
-                0.2f,
-            )
+        val prodID = intent.getStringExtra("PRODUCT_ID")
+        val prod = Globals.products.find { it.checkName==prodID }!!
 
         val productTitle = findViewById<TextView>(R.id.productTitle)
         val productWeight = findViewById<TextView>(R.id.productWeight)

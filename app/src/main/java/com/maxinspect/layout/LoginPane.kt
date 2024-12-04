@@ -9,7 +9,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.gms.auth.api.signin.GoogleSignIn.getClient
 import com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
@@ -22,9 +21,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 class LoginPane : ComponentActivity() {
-    private lateinit var googleSignInClient: GoogleSignInClient
     private val uiScope = CoroutineScope(Dispatchers.Main)
     lateinit var infoText: TextView
+//On login button click launch function
     private val signInLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             // Handle the result of the sign-in activity here
@@ -50,6 +49,7 @@ class LoginPane : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.login_pane)
+
         infoText = findViewById<TextView>(R.id.LoginEmailText)
         // Configure Google Sign-In
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -59,12 +59,11 @@ class LoginPane : ComponentActivity() {
             )
             .requestProfile()
             .build()
-        googleSignInClient = getClient(this, gso)
 
 
         findViewById<Button>(R.id.OAuthButton).setOnClickListener {
             infoText.text = "Palaukite..."
-            val signInIntent = getClient(this, GoogleSignInOptions.DEFAULT_SIGN_IN).signInIntent
+            val signInIntent = getClient(this, gso).signInIntent
             signInLauncher.launch(signInIntent)
         }
         findViewById<Button>(logoutButton).setOnClickListener {
@@ -79,7 +78,6 @@ class LoginPane : ComponentActivity() {
         if (account != null) {
             val gmailService = Util.getGmailService(account, this)
             Util.getAllEmailReceipts(gmailService, account.email.toString(), uiScope)
-            googleSignInClient.signOut()
         }
     }
 }

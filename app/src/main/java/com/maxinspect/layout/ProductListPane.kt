@@ -17,52 +17,7 @@ class ProductListPane : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.product_list_pane)
         // Sample data for the RecyclerView
-        var itemList = listOf(
-            Product(
-                "SomeName",
-                "Juodųjų serbentų ir melionų šerbetas MIO&RIO",
-                139,
-                80,
-                1f,
-                52f,
-                0.3f,
-                10f,
-                0.2f,
-            ),
-            Product(
-                "SomeName",
-                "Obuoliai JONAGOLD",
-                139,
-                0,
-                0.4f,
-                52f,
-                0.3f,
-                10f,
-                0.2f,
-            ),
-            Product(
-                "SomeName",
-                "Apelsinai",
-                169,
-                0,
-                0.300f,
-                123f,
-                0.5f,
-                17f,
-                0.2f,
-            ),
-            Product(
-                "SomeName",
-                "Jautiena --- ....",
-                699,
-                0,
-                1f,
-                380f,
-                23f,
-                10f,
-                15f,
-            ),
-        )
+        lateinit var itemList : List<Product>
 
         // Sort by given attribute
         val sortby = intent.getStringExtra("PRODUCT_LIST_SORTBY") ?: "none"

@@ -1,3 +1,6 @@
 package com.maxinspect.models
 
-data class Receipt(val price:Int, val date: String)
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class Receipt(val price:Int, val date: String, val id : Int)

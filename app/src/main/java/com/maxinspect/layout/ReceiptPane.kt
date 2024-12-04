@@ -3,67 +3,31 @@ package com.maxinspect.layout
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import com.maxinspect.Globals
 import com.maxinspect.R
-import com.maxinspect.models.Product
+import com.maxinspect.models.Purchase
 
 class ReceiptPane : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.check_pane)
 
-        // Sample data for the RecyclerView
-        val itemList = listOf(
-            Product(
-                "SomeName",
-                "Juodųjų serbentų ir melionų šerbetas MIO&RIO",
-                139,
-                80,
-                1f,
-                52f,
-                0.3f,
-                10f,
-                0.2f,
-            ),
-            Product(
-                "SomeName",
-                "Obuoliai JONAGOLD",
-                139,
-                0,
-                0.4f,
-                52f,
-                0.3f,
-                10f,
-                0.2f,
-            ),
-            Product(
-                "SomeName",
-                "Apelsinai",
-                169,
-                0,
-                0.300f,
-                123f,
-                0.5f,
-                17f,
-                0.2f,
-            ),
-            Product(
-                "SomeName",
-                "Jautiena --- ....",
-                699,
-                0,
-                1000f,
-                380f,
-                23f,
-                10f,
-                15f,
-            ),
-        )
+        val receiptID = intent.getIntExtra("RECEIPT_ID", -1)
+        val receipt = Globals.receipts.find { it.id == receiptID }
+        Log.w("LoginPane", receiptID.toString())
+        Log.w("LoginPane", receiptID.toString())
+        Log.w("LoginPane", receiptID.toString())
+        Log.w("LoginPane", receiptID.toString())
+        Log.w("LoginPane", receiptID.toString())
+        var purchases : List<Purchase>
+        purchases = Globals.purchases.filter { it.receipt.id == receiptID }
 
         val receiptDateLabel = findViewById<TextView>(R.id.receiptDataLabel)
         val receiptPriceLabel = findViewById<TextView>(R.id.receiptPriceLabel)
@@ -91,20 +55,22 @@ class ReceiptPane : ComponentActivity() {
         }
         tableLayout.addView(headerRow)
 
-        for (item in itemList) {
+        for (item in purchases) {
             addToTable(
                 item,
                 tableLayout,
             ) {
+
                 val intent = Intent(this, ProductPane::class.java)
+                intent.putExtra("PRODUCT_ID", it.product.checkName)
                 startActivity(intent)
-                Toast.makeText(this, "${it.displayName} clicked!", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "${it.product.displayName} clicked!", Toast.LENGTH_LONG).show()
             }
         }
 
     }
 
-    private fun addToTable(item:Product, table: TableLayout, onClick: (x: Product) -> Unit){
+    private fun addToTable(item: Purchase, table: TableLayout, onClick: (x: Purchase) -> Unit){
 
         // Create a new TableRow
         val nameTableRow = TableRow(this)
@@ -112,7 +78,7 @@ class ReceiptPane : ComponentActivity() {
 
         // Create and configure a TextView for the item name
         val itemName = TextView(this)
-        itemName.text = item.displayName
+        itemName.text = item.product.displayName
         itemName.setPadding(4, 4, 4, 4)
         itemName.layoutParams = TableRow.LayoutParams(
             TableRow.LayoutParams.WRAP_CONTENT,
@@ -123,13 +89,15 @@ class ReceiptPane : ComponentActivity() {
 
         // Create and configure a TextView for the item price
         val itemPrice = TextView(this)
-        itemPrice.text = (item.price/100f).toString() + " Eur"
+        itemPrice.text = (item.cost/100f).toString() + " Eur"
         itemPrice.setPadding(4, 4, 4, 24)
 
         // Create and configure a TextView for the item price
         val itemAmount = TextView(this)
-        if(item.weight == 0) {
+        if(item.product.weight == 0) {
             itemAmount.text = item.amount.toString()+"kg"
+        } else if (item.product.weight < 0) {
+            itemAmount.text = "-"
         } else {
             itemAmount.text = item.amount.toInt().toString()+"vnt"
         }
@@ -137,22 +105,22 @@ class ReceiptPane : ComponentActivity() {
 
         // Create and configure a TextView for the item price
         val itemCals = TextView(this)
-        itemCals.text = item.calories.toInt().toString()
+        itemCals.text = item.product.calories.toInt().toString()
         itemCals.setPadding(4, 4, 4, 24)
 
         // Create and configure a TextView for the item price
         val itemProtein = TextView(this)
-        itemProtein.text = item.protein.toString()
+        itemProtein.text = item.product.protein.toString()
         itemProtein.setPadding(4, 4, 4, 24)
 
         // Create and configure a TextView for the item price
         val itemFat = TextView(this)
-        itemFat.text = item.protein.toString()
+        itemFat.text = item.product.fats.toString()
         itemFat.setPadding(4, 4, 4, 24)
 
         // Create and configure a TextView for the item price
         val itemCarb = TextView(this)
-        itemCarb.text = item.protein.toString()
+        itemCarb.text = item.product.carbs.toString()
         itemCarb.setPadding(4, 4, 4, 24)
 
         // Add TextViews to the TableRow

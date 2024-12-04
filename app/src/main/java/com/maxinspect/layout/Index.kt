@@ -3,6 +3,7 @@ package com.maxinspect.layout
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import androidx.activity.ComponentActivity
 import com.maxinspect.R
@@ -37,6 +38,7 @@ class Index : ComponentActivity() {
             startActivity(intent)
         }
 
+
         val analysisButton = findViewById<Button>(R.id.PurchaseAnalysisButton)
         analysisButton.setOnClickListener {
             val intent = Intent(this, PurchaseAnalysisPane::class.java)
@@ -44,6 +46,7 @@ class Index : ComponentActivity() {
         }
 
         val registerProductsButton = findViewById<Button>(R.id.RegisterProductsButton)
+        registerProductsButton.visibility = View.GONE
         registerProductsButton.setOnClickListener {
 
             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
@@ -52,6 +55,7 @@ class Index : ComponentActivity() {
             }
             startActivityForResult(Intent.createChooser(intent, "Select a CSV file"), CODE.FILE_PICK)
         }
+
 
     }
 

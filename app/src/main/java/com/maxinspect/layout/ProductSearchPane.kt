@@ -5,8 +5,6 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.activity.ComponentActivity
 import com.maxinspect.R
-import java.text.SimpleDateFormat
-import java.util.ArrayList
 
 class ProductSearchPane : ComponentActivity() {
 
