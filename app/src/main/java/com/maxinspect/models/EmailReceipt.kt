@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class EmailReceipt(
     var owner: String,
     val checkID: String,
-    val products: Array<EmailProduct>,
     val dateIssued: String,
-    val cost: Int
+    val cost: Int,
+    val purchases: Array<EmailPurchase>,
 )

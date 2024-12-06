@@ -12,12 +12,14 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import com.maxinspect.Globals
 import com.maxinspect.R
+import com.maxinspect.Util
 import com.maxinspect.models.Purchase
 
 class ReceiptPane : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.check_pane)
+        Util.syncGlobals()
 
         val receiptID = intent.getIntExtra("RECEIPT_ID", -1)
         val receipt = Globals.receipts.find { it.id == receiptID }

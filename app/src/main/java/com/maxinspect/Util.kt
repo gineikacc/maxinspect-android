@@ -11,7 +11,6 @@ import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.jackson2.JacksonFactory.getDefaultInstance
 import com.google.api.services.gmail.Gmail
 import com.google.api.services.gmail.model.Message
-import com.maxinspect.models.EmailProduct
 import com.maxinspect.models.EmailPurchase
 import com.maxinspect.models.EmailReceipt
 import com.maxinspect.models.Product
@@ -34,21 +33,16 @@ import java.io.File
 import java.util.Base64
 
 class Util {
-
-
     companion object {
-
-
-
         fun getGmailService(account: GoogleSignInAccount, ctx: Context): Gmail {
             val accountName = account.displayName
-                    if (accountName.isNullOrEmpty()) {
-                        Log.e("LoginPane", "Account name is empty!")
-                    } else {
+            if (accountName.isNullOrEmpty()) {
+                Log.e("LoginPane", "Account name is empty!")
+            } else {
 
-                        Log.e("LoginPane", "Account name : $accountName")
-                        Log.e("LoginPane", "Account memes : ${account.account?.name}")
-                    }
+                Log.e("LoginPane", "Account name : $accountName")
+                Log.e("LoginPane", "Account memes : ${account.account?.name}")
+            }
 
             Log.w("LoginPane", "2")
             val credential = GoogleAccountCredential.usingOAuth2(
@@ -66,7 +60,7 @@ class Util {
                 .build()
         }
 
-        fun parseEmail(email: Message) : EmailReceipt {
+        fun parseEmail(email: Message, owner: String) : EmailReceipt {
             val totalCost = (email.snippet.split(" ")[2].toDouble() * 100).toInt()
             val b64Content = email.payload.parts[0].body.data .replace('-', '+').replace('_', '/')
             val decodedBytes = Base64.getDecoder().decode(b64Content.toByteArray())
@@ -105,7 +99,7 @@ class Util {
             purchases = purchases.filter { it.isNotEmpty() }
             //products = products.filter { !it.startsWith("Nuolaida") }
             purchases = purchases.filter { !it.startsWith("-----") }
-            val finalPurchases = mutableListOf<EmailProduct>()
+            val finalPurchases = mutableListOf<EmailPurchase>()
             Log.i("LoginPane", "Products vvv ")
             var i = 0
             while (i < purchases.size) {
@@ -126,9 +120,9 @@ class Util {
 
                 val title = p.slice(0 until titleEndIndex)
                 val price = Math.round(tokens.last().replace(",", ".").toDouble() * 100).toInt()
-                var amount = 1.0
+                var amount = 1.0f
                 if (!hasCashierID) {
-                    amount = (amountData?.groupValues?.get(1)?.replace(",", "."))?.toDoubleOrNull() ?: 1.0
+                    amount = (amountData?.groupValues?.get(1)?.replace(",", "."))?.toFloatOrNull() ?: 1.0f
                 }
                 // If we got the cashier, need to check for amount in next line
                 // Peek next to see if it's a discount line
@@ -138,7 +132,7 @@ class Util {
                     // Amount check
                     if (hasCashierID) {
                         val peekAmountData = amountRegex.find(purchases[peekLine])
-                        amount = (peekAmountData?.groupValues?.get(1)?.replace(",", "."))?.toDoubleOrNull() ?: 1.0
+                        amount = (peekAmountData?.groupValues?.get(1)?.replace(",", "."))?.toFloatOrNull() ?: 1.0f
                     }
                     // Discount
                     if (peekLine < purchases.size && purchases[peekLine].contains("Nuolaida")) {
@@ -156,13 +150,14 @@ class Util {
                     }
                 }
 
-                var product = EmailProduct(title, price+discount, amount)
+                var product = EmailPurchase(checkID.toInt(), title, price+discount, amount)
                 finalPurchases.add(product)
                 Log.i("LoginPane", product.toString())
                 i++
             }
 
-            val check = EmailReceipt(owner="_", checkID, finalPurchases.toTypedArray(), date ?: "NONE", totalCost)
+            //creating receipt for upload
+            val check = EmailReceipt(owner, checkID, date ?: "NONE", totalCost, finalPurchases.toTypedArray())
             return check
         }
 
@@ -223,7 +218,7 @@ class Util {
 
             // Use a coroutine to handle the network call off the main thread
             try {
-            CoroutineScope(Dispatchers.IO).launch {
+                CoroutineScope(Dispatchers.IO).launch {
                     // Execute the request
                     client.newCall(request).execute().use { response ->
                         if (!response.isSuccessful) {
@@ -233,7 +228,7 @@ class Util {
                             Log.w("LoginPane", response.body?.string() ?: "noinfo")
                         }
                     }
-            }
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -253,13 +248,11 @@ class Util {
                             gmailService.users().messages().get("me", message.id).execute()
                         }
 
-                        var emailReceipt = parseEmail(email)
-                        emailReceipt.owner = owner
-                        Log.e("LoginPane", Json.encodeToString(emailReceipt))
+                        var emailReceipt = parseEmail(email, owner)
                         dbCreateReceipt(emailReceipt)
                         var receipt = Receipt(emailReceipt.cost, emailReceipt.dateIssued, emailReceipt.checkID.toInt())
                         Globals.receipts.add(receipt)
-                        dbGetProducts(receipt, owner)
+                        dbGetReceiptPurchases(receipt)
                     }
                 } catch (e: Exception) {
                     Log.e("LoginPane", "AAAAAAAA")
@@ -268,27 +261,67 @@ class Util {
             }
         }
 
-        fun dbGetProducts(check: Receipt, owner: String) {
+        fun dbGetReceiptPurchases(check: Receipt) {
             val client = OkHttpClient()
             val request = Request.Builder()
-                .url("http://gineika.cc/getreceiptdetails?owner=$owner&id=" + check.id)
+                .url("http://gineika.cc/receiptpurchases?id=" + check.id)
                 .build()
             CoroutineScope(Dispatchers.IO).launch {
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
-                    var purchases = Json.decodeFromString<Array<EmailPurchase>>(response.body?.string().toString())
-                    purchases.forEach {
-                        var prod = Product(it.checkName,it.displayName, it.price, it.weight, it.calories, it.protein, it.fats, it.carbs)
-                        var purchase = Purchase(prod, check, it.amount, it.price )
-                        Globals.products.add(prod)
-                        Globals.purchases.add(purchase)
+                    var purchase =
+                        Json.decodeFromString<Array<EmailPurchase>>(response.body?.string().toString())
+                    purchase.forEach {
+                        var p = EmailPurchase(check.id, it.productID, it.cost, it.amount)
+                        if (Globals.purchases.find {
+                                it.receipt.id == check.id && it.product.checkName == p.productID
+                            } == null) {
+                            Globals.syncQueue.add(p)
+                            dbGetProduct(it.productID)
+                        } else {
+                            Log.e("LoginPane", "Failed : ${response.code}")
+                        }
                     }
-                    Log.d("LoginPane", "File uploaded successfully")
-                } else {
-                    Log.e("LoginPane", "Failed to upload: ${response.code}")
                 }
             }
         }
 
+        fun dbGetProduct(productID: String) {
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url("http://gineika.cc/product?id=" + productID)
+                .build()
+            CoroutineScope(Dispatchers.IO).launch {
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    var product = Json.decodeFromString<Product>(response.body?.string().toString())
+                    var foundProd = Globals.products.find { it.checkName == product.checkName  }
+                    if (foundProd == null) {
+                        Globals.products.add(product)
+                    }
+                } else {
+                    Log.w("LoginPane", "No product found : ${response.code}")
+                }
+            }
+        }
+        fun syncGlobals(){
+            var markForRemoval = ArrayList<EmailPurchase>()
+            for (purchase in Globals.syncQueue) {
+                var foundPurchase = Globals.purchases.find {
+                    it.receipt.id.toString() == purchase.productID &&
+                            it.product.checkName == purchase.productID
+                }
+                if ( foundPurchase == null) {
+                    var receipt = Globals.receipts.find { it.id == purchase.checkID.toInt() }
+                    var product = Globals.products.find { it.checkName == purchase.productID }
+                    if(receipt != null && product != null) {
+                        var p = Purchase(product, receipt, purchase.amount, purchase.cost)
+                        Globals.purchases.add(p)
+                        markForRemoval.add(purchase)
+                    }
+                }
+            }
+            markForRemoval.forEach { Globals.syncQueue.remove(it) }
+        }
     }
 }
