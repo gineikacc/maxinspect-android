@@ -63,21 +63,26 @@ class LoginPane : ComponentActivity() {
 
         findViewById<Button>(R.id.OAuthButton).setOnClickListener {
             infoText.text = "Palaukite..."
-            val signInIntent = getClient(this, gso).signInIntent
-            signInLauncher.launch(signInIntent)
+            val SIClient = getClient(this, gso)
+            SIClient.revokeAccess().addOnCompleteListener {
+                val SIIntent = getClient(this, gso).signInIntent
+                signInLauncher.launch(SIIntent)
+            }
         }
         findViewById<Button>(logoutButton).setOnClickListener {
             infoText.text = "Atsijungta"
             Globals.products.clear()
             Globals.receipts.clear()
             Globals.purchases.clear()
+            Globals.syncQueue.clear()
+            Globals.userID = ""
         }
     }
 
     private fun updateUI(account: GoogleSignInAccount?) {
         if (account != null) {
             val gmailService = Util.getGmailService(account, this)
-            Util.getAllEmailReceipts(gmailService, account.email.toString(), uiScope)
+            Util.getAllEmailReceipts(gmailService, account.email.toString(), uiScope, this)
         }
     }
 }

@@ -8,6 +8,7 @@ import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import com.maxinspect.Globals
 import com.maxinspect.R
 import com.maxinspect.models.Product
 
@@ -18,7 +19,11 @@ class ProductListPane : ComponentActivity() {
         setContentView(R.layout.product_list_pane)
         // Sample data for the RecyclerView
         lateinit var itemList : List<Product>
-
+        itemList = ArrayList(Globals.products)
+        var query = intent.getStringExtra("PRODUCT_QUERY")
+        if(query != null) {
+            itemList = ArrayList(itemList).filter { it.checkName.contains(query, true) }
+        }
         // Sort by given attribute
         val sortby = intent.getStringExtra("PRODUCT_LIST_SORTBY") ?: "none"
         if(sortby=="price"){
@@ -64,6 +69,7 @@ class ProductListPane : ComponentActivity() {
                 headersToHide,
             ) {
                 val intent = Intent(this, ProductPane::class.java)
+                intent.putExtra("PRODUCT_ID", item.checkName)
                 startActivity(intent)
             }
         }

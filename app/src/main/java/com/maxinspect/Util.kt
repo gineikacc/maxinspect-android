@@ -3,6 +3,7 @@ package com.maxinspect
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.HttpTransport
@@ -36,19 +37,9 @@ class Util {
     companion object {
         fun getGmailService(account: GoogleSignInAccount, ctx: Context): Gmail {
             val accountName = account.displayName
-            if (accountName.isNullOrEmpty()) {
-                Log.e("LoginPane", "Account name is empty!")
-            } else {
-
-                Log.e("LoginPane", "Account name : $accountName")
-                Log.e("LoginPane", "Account memes : ${account.account?.name}")
-            }
-
-            Log.w("LoginPane", "2")
             val credential = GoogleAccountCredential.usingOAuth2(
                 ctx, listOf("https://www.googleapis.com/auth/gmail.readonly")
             )
-
             account.account?.let {
                 credential.selectedAccount = it
             } ?: Log.e("LoginPane", "Account selection failed; account data is missing.")
@@ -236,13 +227,18 @@ class Util {
 
 
         // Example function to list the emails from the Gmail account
-        fun getAllEmailReceipts(gmailService: Gmail, owner: String, uiScope: CoroutineScope) {
+        fun getAllEmailReceipts(gmailService: Gmail, owner: String, uiScope: CoroutineScope, ctx: Context) {
             uiScope.launch {
                 try {
                     val request = gmailService.users().messages().list("me")
                         .setQ("from:noreply.code.provider@maxima.lt subject:\"Jūsų apsipirkimo MAXIMOJE kvitas\"")
                     val response = withContext(Dispatchers.IO) { request.execute() }
-                    for (message in response.messages.subList(0, 5)) {
+                    Log.w("LoginPane", response.toString())
+                    if(response.messages == null) {
+                        Toast.makeText(ctx, "Šis el. paštas neturi Maxima kvitų", Toast.LENGTH_LONG).show()
+                        throw Exception("bad hombre")
+                    }
+                    for (message in response.messages.subList(0, Math.min(response.messages.size, 10))) {
                         // Process each email message
                         val email: Message = withContext(Dispatchers.IO) {
                             gmailService.users().messages().get("me", message.id).execute()
@@ -253,6 +249,7 @@ class Util {
                         var receipt = Receipt(emailReceipt.cost, emailReceipt.dateIssued, emailReceipt.checkID.toInt())
                         Globals.receipts.add(receipt)
                         dbGetReceiptPurchases(receipt)
+                        Globals.userID = owner
                     }
                 } catch (e: Exception) {
                     Log.e("LoginPane", "AAAAAAAA")
@@ -295,7 +292,7 @@ class Util {
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
                     var product = Json.decodeFromString<Product>(response.body?.string().toString())
-                    var foundProd = Globals.products.find { it.checkName == product.checkName  }
+                    var foundProd = ArrayList(Globals.products).find { it.checkName == product.checkName  }
                     if (foundProd == null) {
                         Globals.products.add(product)
                     }
@@ -323,5 +320,31 @@ class Util {
             }
             markForRemoval.forEach { Globals.syncQueue.remove(it) }
         }
+
+        fun dbQueryProducts(query: String) {
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url("http://gineika.cc/queryproduct?q=" + query)
+                .build()
+            CoroutineScope(Dispatchers.IO).launch {
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    var products =
+                        Json.decodeFromString<Array<Product>>(response.body?.string().toString())
+                    products.forEach {
+
+                        var p = it
+                        if (Globals.products.find {
+                                p.checkName == it.checkName
+                            } == null) {
+                            Globals.products.add(p)
+                        } else {
+                            Log.e("LoginPane", "Failed : ${response.code}")
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }
