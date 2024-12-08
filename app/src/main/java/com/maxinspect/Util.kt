@@ -19,6 +19,7 @@ import com.maxinspect.models.Purchase
 import com.maxinspect.models.Receipt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -188,8 +189,10 @@ class Util {
                 try {
                     val response = client.newCall(request).execute()
                     if (response.isSuccessful) {
+                        Toast.makeText(ctx, "Produktai įkelti sekmingai", Toast.LENGTH_LONG).show()
                         Log.d("LoginPane", "File uploaded successfully")
                     } else {
+                        Toast.makeText(ctx, "Produktų įkelimas nepavyko", Toast.LENGTH_LONG).show()
                         Log.e("LoginPane", "Failed to upload: ${response.code}")
                     }
                 } catch (e: Exception) {
@@ -208,23 +211,18 @@ class Util {
                 .build()
 
             // Use a coroutine to handle the network call off the main thread
-            try {
-                CoroutineScope(Dispatchers.IO).launch {
-                    // Execute the request
-                    client.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) {
-                            Log.e("LoginPane", "Unexpected code $response")
-                        } else {
-                            // Print the response body
-                            Log.w("LoginPane", response.body?.string() ?: "noinfo")
-                        }
+            var createReceiptJob = CoroutineScope(Dispatchers.IO).launch {
+                // Execute the request
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        Log.e("LoginPane", "Unexpected code $response")
+                    } else {
+                        // Print the response body
+                        Log.w("LoginPane", response.body?.string() ?: "noinfo")
                     }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
-
 
         // Example function to list the emails from the Gmail account
         fun getAllEmailReceipts(gmailService: Gmail, owner: String, uiScope: CoroutineScope, ctx: Context) {
@@ -263,20 +261,24 @@ class Util {
             val request = Request.Builder()
                 .url("http://gineika.cc/receiptpurchases?id=" + check.id)
                 .build()
+
             CoroutineScope(Dispatchers.IO).launch {
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
-                    var purchase =
-                        Json.decodeFromString<Array<EmailPurchase>>(response.body?.string().toString())
-                    purchase.forEach {
-                        var p = EmailPurchase(check.id, it.productID, it.cost, it.amount)
-                        if (Globals.purchases.find {
-                                it.receipt.id == check.id && it.product.checkName == p.productID
-                            } == null) {
-                            Globals.syncQueue.add(p)
-                            dbGetProduct(it.productID)
-                        } else {
-                            Log.e("LoginPane", "Failed : ${response.code}")
+                withContext(Dispatchers.IO) {
+                    delay(400)
+                    val response = client.newCall(request).execute()
+                    if (response.isSuccessful) {
+                        var purchase =
+                            Json.decodeFromString<Array<EmailPurchase>>(response.body?.string().toString())
+                        purchase.forEach {
+                            var p = EmailPurchase(check.id, it.productID, it.cost, it.amount)
+                            if (Globals.purchases.find {
+                                    it.receipt.id == check.id && it.product.checkName == p.productID
+                                } == null) {
+                                Globals.syncQueue.add(p)
+                                dbGetProduct(it.productID)
+                            } else {
+                                Log.e("LoginPane", "Failed : ${response.code}")
+                            }
                         }
                     }
                 }
@@ -347,4 +349,6 @@ class Util {
         }
 
     }
+
+
 }

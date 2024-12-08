@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.activity.ComponentActivity
 import com.maxinspect.R
-import com.maxinspect.models.Product
 
 class PurchaseAnalysisPane : ComponentActivity() {
 

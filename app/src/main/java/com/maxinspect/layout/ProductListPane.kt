@@ -134,7 +134,7 @@ class ProductListPane : ComponentActivity() {
         // Create and configure a TextView for the item price
         if(!hiddenHeaders.contains("Rieb")) {
             val itemFat = TextView(this)
-            itemFat.text = item.protein.toString()
+            itemFat.text = item.fats.toString()
             itemFat.setPadding(4, 4, 4, 24)
             dataTableRow.addView(itemFat)
         }
@@ -142,7 +142,7 @@ class ProductListPane : ComponentActivity() {
         // Create and configure a TextView for the item price
         if(!hiddenHeaders.contains("Angl")) {
             val itemCarb = TextView(this)
-            itemCarb.text = item.protein.toString()
+            itemCarb.text = item.carbs.toString()
             itemCarb.setPadding(4, 4, 4, 24)
             dataTableRow.addView(itemCarb)
         }

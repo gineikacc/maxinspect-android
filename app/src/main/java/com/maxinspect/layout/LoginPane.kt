@@ -33,6 +33,7 @@ class LoginPane : ComponentActivity() {
                     getSignedInAccountFromIntent(data)
                 try {
                     val account = task.getResult(ApiException::class.java)
+                    Log.w("LoginPane", account.idToken.toString())
                     // Signed in successfully, show authenticated UI
                     updateUI(account)
                     infoText.text = "Prisijungta"
@@ -58,6 +59,7 @@ class LoginPane : ComponentActivity() {
                 Scope("https://www.googleapis.com/auth/gmail.readonly"),
             )
             .requestProfile()
+            .requestIdToken("598670301622-ubdk558pjt9kvqt3p88qmo45f9e0mfbl.apps.googleusercontent.com")
             .build()
 
 

@@ -72,7 +72,7 @@ class ReceiptPane : ComponentActivity() {
 
     }
 
-    private fun addToTable(item: Purchase, table: TableLayout, onClick: (x: Purchase) -> Unit){
+    private fun addToTable(item: Purchase, table: TableLayout, onClick: (x: Purchase) -> Unit) {
 
         // Create a new TableRow
         val nameTableRow = TableRow(this)
@@ -86,43 +86,68 @@ class ReceiptPane : ComponentActivity() {
             TableRow.LayoutParams.WRAP_CONTENT,
             TableRow.LayoutParams.WRAP_CONTENT
         ).apply {
-           span = 6
+            span = 6
         }
 
         // Create and configure a TextView for the item price
         val itemPrice = TextView(this)
-        itemPrice.text = (item.cost/100f).toString() + " Eur"
+        itemPrice.text = (item.cost / 100f).toString() + " Eur"
         itemPrice.setPadding(4, 4, 4, 24)
+
+        val weighable = item.product.weight == 0
 
         // Create and configure a TextView for the item price
         val itemAmount = TextView(this)
-        if(item.product.weight == 0) {
-            itemAmount.text = item.amount.toString()+"kg"
-        } else if (item.product.weight < 0) {
-            itemAmount.text = "-"
+        if (weighable) {
+            itemAmount.text = (item.amount*1000).toInt().toString() + "g"
         } else {
-            itemAmount.text = item.amount.toInt().toString()+"vnt"
+            itemAmount.text = item.amount.toInt().toString() + "vnt"
         }
         itemAmount.setPadding(4, 4, 4, 24)
 
+
         // Create and configure a TextView for the item price
         val itemCals = TextView(this)
-        itemCals.text = item.product.calories.toInt().toString()
+        val calories: Int
+        if (weighable) {
+            calories = (item.product.calories*item.amount*10).toInt()
+        } else {
+            calories = (item.product.calories * item.amount * (item.product.weight.toFloat()/100f)).toInt()
+        }
+        itemCals.text = calories.toInt().toString()
         itemCals.setPadding(4, 4, 4, 24)
 
         // Create and configure a TextView for the item price
         val itemProtein = TextView(this)
-        itemProtein.text = item.product.protein.toString()
+        val protein: Float
+        if (weighable) {
+            protein = (item.product.protein*item.amount*10)
+        } else {
+            protein = (item.product.protein * item.amount * (item.product.weight.toFloat()/100f))
+        }
+        itemProtein.text = protein.toInt().toString()
         itemProtein.setPadding(4, 4, 4, 24)
 
         // Create and configure a TextView for the item price
         val itemFat = TextView(this)
-        itemFat.text = item.product.fats.toString()
+        val fats: Float
+        if (weighable) {
+            fats = (item.product.fats*item.amount*10)
+        } else {
+            fats = (item.product.fats * item.amount * (item.product.weight.toFloat()/100f))
+        }
+        itemFat.text = fats.toInt().toString()
         itemFat.setPadding(4, 4, 4, 24)
 
         // Create and configure a TextView for the item price
         val itemCarb = TextView(this)
-        itemCarb.text = item.product.carbs.toString()
+        val carbs: Float
+        if (weighable) {
+            carbs = (item.product.carbs*item.amount*10)
+        } else {
+            carbs = (item.product.carbs * item.amount * (item.product.weight.toFloat()/100f))
+        }
+        itemCarb.text = carbs.toInt().toString()
         itemCarb.setPadding(4, 4, 4, 24)
 
         // Add TextViews to the TableRow
