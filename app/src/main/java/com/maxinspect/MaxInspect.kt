@@ -8,6 +8,7 @@ import com.maxinspect.models.Receipt
 
 object Globals {
     var userID = ""
+    var nodeHost = "gineika.cc"
     var receipts = ArrayList<Receipt>()
     var products = ArrayList<Product>()
     var purchases = ArrayList<Purchase>()

@@ -177,7 +177,7 @@ class Util {
 
             // Create the request
             val request = Request.Builder()
-                .url("http://gineika.cc/uploadcsv")
+                .url("http://" + Globals.nodeHost + "/uploadcsv")
                 .post(multipartBody) // Send the entire multipart body
                 .build()
 
@@ -206,7 +206,7 @@ class Util {
 
             // Build the request
             val request = Request.Builder()
-                .url("http://gineika.cc/createreceipt")
+                .url("http://" + Globals.nodeHost + "/createreceipt")
                 .post(RequestBody.create("application/json".toMediaType(), Json.encodeToString(receipt)))
                 .build()
 
@@ -259,7 +259,7 @@ class Util {
         fun dbGetReceiptPurchases(check: Receipt) {
             val client = OkHttpClient()
             val request = Request.Builder()
-                .url("http://gineika.cc/receiptpurchases?id=" + check.id)
+                .url("http://" + Globals.nodeHost + "/receiptpurchases?id=" + check.id)
                 .build()
 
             CoroutineScope(Dispatchers.IO).launch {
@@ -288,7 +288,7 @@ class Util {
         fun dbGetProduct(productID: String) {
             val client = OkHttpClient()
             val request = Request.Builder()
-                .url("http://gineika.cc/product?id=" + productID)
+                .url("http://" + Globals.nodeHost + "/product?id=" + productID)
                 .build()
             CoroutineScope(Dispatchers.IO).launch {
                 val response = client.newCall(request).execute()
@@ -326,7 +326,7 @@ class Util {
         fun dbQueryProducts(query: String) {
             val client = OkHttpClient()
             val request = Request.Builder()
-                .url("http://gineika.cc/queryproduct?q=" + query)
+                .url("http://" + Globals.nodeHost +"/queryproduct?q=" + query)
                 .build()
             CoroutineScope(Dispatchers.IO).launch {
                 val response = client.newCall(request).execute()
