@@ -236,7 +236,7 @@ class Util {
                         Toast.makeText(ctx, "Šis el. paštas neturi Maxima kvitų", Toast.LENGTH_LONG).show()
                         throw Exception("bad hombre")
                     }
-                    for (message in response.messages.subList(0, Math.min(response.messages.size, 10))) {
+                    for (message in response.messages.subList(0, Math.min(response.messages.size, 20))) {
                         // Process each email message
                         val email: Message = withContext(Dispatchers.IO) {
                             gmailService.users().messages().get("me", message.id).execute()
